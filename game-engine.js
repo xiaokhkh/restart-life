@@ -704,13 +704,7 @@ function showResult(change) {
 // ============================================================
 function showHealthEnding() {
   G.health = 0;
-  const ending = {
-    tag: 'bad', tagText: '悲惨结局',
-    title: '倒在了终点前',
-    subtitle: '钱没赚到，人先没了',
-    story: `你的健康值降到了0。在医院的病床上，你回想这些年，大部分时间都在为钱发愁。现在钱不重要了，但你也没机会花了。`,
-    type: 'bad'
-  };
+  const ending = generateEnding(G);
   renderEnding(ending);
 }
 
