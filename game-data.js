@@ -2481,6 +2481,156 @@ const EASTER_ENDINGS = {
 // ============================================================
 // 结局生成（多样化结局）
 // ============================================================
+
+// 健康归零的多样化文案
+function getHealthZeroEnding(state) {
+  const { money, age, network, luck, single } = state;
+  const netMoney = money;
+  
+  // 根据年龄分类
+  const isYoung = age < 50;
+  const isMiddle = age >= 50 && age < 70;
+  const isOld = age >= 70;
+  
+  // 根据财富分类
+  const isRich = netMoney >= 1000000;
+  const isPoor = netMoney < 100000;
+  
+  // 根据人脉分类
+  const hasFriends = network >= 60;
+  
+  // 根据运气分类
+  const isLucky = luck >= 60;
+  
+  // === 年轻时去世 (35-49岁) ===
+  if (isYoung) {
+    if (isRich) {
+      return {
+        tag: 'neutral', tagText: '遗憾结局',
+        title: '英年早逝',
+        subtitle: '拼命工作，却没等到享受的那天',
+        story: `${age}岁，你走了。银行卡里躺着${Math.floor(netMoney/10000)}万，是你这几年拼了命赚来的。${hasFriends ? '朋友们来送你最后一程，有人哭着说："你太拼了。"' : '葬礼很简单，来的人不多。'}你躺在那里想：如果有来生，一定要对自己好一点。`,
+        type: 'neutral'
+      };
+    } else if (isPoor) {
+      return {
+        tag: 'bad', tagText: '悲惨结局',
+        title: '困顿一生',
+        subtitle: '还没来得及翻身，就倒下了',
+        story: `${age}岁，你在出租屋里倒下了。存款只有${Math.floor(netMoney/10000)}万，连丧葬费都不够。${single ? '没有家人，房东发现你的时候，已经过了三天。' : '家人从老家赶来，哭得昏天黑地。'}你这一生，好像一直在挣扎，却什么都没抓住。`,
+        type: 'bad'
+      };
+    } else {
+      return {
+        tag: 'neutral', tagText: '遗憾结局',
+        title: '戛然而止',
+        subtitle: '人生刚刚开始，却突然结束',
+        story: `${age}岁，一场突如其来的病把你带走了。存款${Math.floor(netMoney/10000)}万，不多不少。${hasFriends ? '朋友们都不敢相信："上周还一起吃饭呢..."' : '你走得很安静。'}你还有那么多计划没实现，那么多地方没去，那么多话没说。`,
+        type: 'neutral'
+      };
+    }
+  }
+  
+  // === 中年去世 (50-69岁) ===
+  if (isMiddle) {
+    if (isRich && hasFriends) {
+      return {
+        tag: 'neutral', tagText: '遗憾结局',
+        title: '功成名就，却没能享受',
+        subtitle: '半生奋斗，倒在终点线前',
+        story: `${age}岁，你倒下了。存款${Math.floor(netMoney/10000)}万，事业也算有成，朋友们都说你"这辈子值了"。但你自己知道，还有很多想做的事没做。病床上，你第一次觉得，钱真的不是万能的。`,
+        type: 'neutral'
+      };
+    } else if (isRich) {
+      return {
+        tag: 'neutral', tagText: '遗憾结局',
+        title: '孤独的成功者',
+        subtitle: '有钱有地位，却没有健康',
+        story: `${age}岁，你在医院里走完了最后一程。存款${Math.floor(netMoney/10000)}万，但病房里很冷清。成功可以买很多东西，但买不来时间和陪伴。临走前，你突然很想见见那些被你忽略的人。`,
+        type: 'neutral'
+      };
+    } else if (isPoor && hasFriends) {
+      return {
+        tag: 'bad', tagText: '温暖结局',
+        title: '穷但有爱',
+        subtitle: '钱不多，但朋友真心',
+        story: `${age}岁，你走了。存款只有${Math.floor(netMoney/10000)}万，但病床前围满了朋友。他们给你讲以前的事，让你别担心。你闭上眼睛的时候想：这辈子钱没赚到，但交到了真朋友，也值了。`,
+        type: 'neutral'
+      };
+    } else if (isPoor) {
+      return {
+        tag: 'bad', tagText: '悲惨结局',
+        title: '中年困顿',
+        subtitle: '上有老下有小，你却先走了',
+        story: `${age}岁，你撑不住了。存款${Math.floor(netMoney/10000)}万，连看病都不够。${single ? '你走得很孤独。' : '家人的哭声让你心碎，但你已经无力安慰他们了。'}你这一生，好像永远在还债，永远不够，永远在担心。现在不用担心了。`,
+        type: 'bad'
+      };
+    } else {
+      return {
+        tag: 'neutral', tagText: '平凡结局',
+        title: '普通人的谢幕',
+        subtitle: '平平淡淡来，平平淡淡走',
+        story: `${age}岁，你的身体终于撑不住了。存款${Math.floor(netMoney/10000)}万，说多不多说少不少。${hasFriends ? '朋友们来送你，说你是他们认识的最实在的人。' : '你走得很安静。'}这一生没有大起大落，也没有什么遗憾，只是觉得，好像可以活得再精彩一点。`,
+        type: 'neutral'
+      };
+    }
+  }
+  
+  // === 老年去世 (70岁以上) ===
+  if (isOld) {
+    if (isRich && hasFriends) {
+      return {
+        tag: 'good', tagText: '圆满结局',
+        title: '功德圆满',
+        subtitle: '有钱有爱，善终',
+        story: `${age}岁，你在家人和朋友的陪伴下安详离世。存款${Math.floor(netMoney/10000)}万，足够家人生活。这一生你经历了很多，也收获了很多。临走前，你说："我这一生，没什么遗憾了。"`,
+        type: 'good'
+      };
+    } else if (isRich) {
+      return {
+        tag: 'neutral', tagText: '遗憾结局',
+        title: '孤独的富翁',
+        subtitle: '有钱却没有陪伴',
+        story: `${age}岁，你在医院里独自走完最后一程。存款${Math.floor(netMoney/10000)}万，但没有人分享。你想起年轻时候，那时候虽然穷，但朋友很多。钱赚到了，但好像也失去了什么。`,
+        type: 'neutral'
+      };
+    } else if (hasFriends) {
+      return {
+        tag: 'good', tagText: '温暖结局',
+        title: '穷得只剩朋友',
+        subtitle: '没钱，但有爱',
+        story: `${age}岁，你走的时候很安详。存款只有${Math.floor(netMoney/10000)}万，但病房里挤满了来看你的人。他们叫你"老朋友"、"老前辈"，说你的故事他们会记着。你闭上眼想：这辈子，没白活。`,
+        type: 'good'
+      };
+    } else if (isLucky) {
+      return {
+        tag: 'good', tagText: '幸运结局',
+        title: '福寿双全',
+        subtitle: '运气好到最后一刻',
+        story: `${age}岁，你在睡梦中安详离去，没有痛苦。这一生你运气一直不错，关键时刻总有人帮，危险总能躲过。存款${Math.floor(netMoney/10000)}万，不多但够用。你觉得自己是被老天眷顾的那个人。`,
+        type: 'good'
+      };
+    } else {
+      return {
+        tag: 'neutral', tagText: '平淡结局',
+        title: '平凡一生',
+        subtitle: '普通人的谢幕',
+        story: `${age}岁，你走完了这一生。存款${Math.floor(netMoney/10000)}万，不算富裕但也没饿着。这一生没什么大起大落，就像大多数人一样，平平淡淡。但你想，平平淡淡也是一种福。`,
+        type: 'neutral'
+      };
+    }
+  }
+  
+  // 默认
+  return {
+    tag: 'neutral', tagText: '命运结局',
+    title: '生命的终点',
+    subtitle: '每个人都有自己的终点',
+    story: `${age}岁，你的人生画上了句号。存款${Math.floor(netMoney/10000)}万，健康耗尽。这一生有苦有甜，有得有失。如果可以重来，你会做出不同的选择吗？`,
+    type: 'neutral'
+  };
+}
+
 function generateEnding(state) {
   // 检查彩蛋结局
   if (state.easterEgg && EASTER_ENDINGS[state.easterEgg]) {
@@ -2490,128 +2640,231 @@ function generateEnding(state) {
   const { money, income, debt, bigWin, health, network, luck, age, single } = state;
   const netMoney = money - (debt || 0);
   
-  // 计算综合评分
-  const wealthScore = netMoney / 10000;  // 财富分数（万）
-  const healthScore = health;  // 健康分数
-  const networkScore = network;  // 人脉分数
-  const luckScore = luck;  // 幸运分数
+  // 健康为0，使用多样化文案
+  if (health <= 0) {
+    return getHealthZeroEnding(state);
+  }
   
-  // 活到120岁的传奇结局（最高优先级）
+  // 活到120岁的传奇结局
   if (age >= 120) {
-    return {
-      tag: 'legendary', tagText: '传奇结局',
-      title: '长寿之星',
-      subtitle: '你太健康了，请分享你的长寿秘诀',
-      story: `你成功活到了120岁！这简直是个奇迹！家人、朋友、媒体都纷纷来向你请教长寿秘诀。你笑着说："心态好、多运动、少纠结，这就是我的秘诀。"这一生，你值了！`,
-      type: 'good'
-    };
+    const endings = [
+      {
+        tag: 'legendary', tagText: '传奇结局',
+        title: '世纪老人',
+        subtitle: '跨越两个世纪的见证者',
+        story: `${age}岁！你成为了当地的传奇人物。记者来采访你的长寿秘诀，你笑着说："少生气，多笑，别把事当太重。"这一生你经历了太多，见证了这个时代的变化。能活到今天，已经是最大的幸运。`,
+        type: 'good'
+      },
+      {
+        tag: 'legendary', tagText: '传奇结局',
+        title: '长寿之星',
+        subtitle: '你太健康了，请分享你的长寿秘诀',
+        story: `你成功活到了${age}岁！这简直是个奇迹！家人、朋友、媒体都纷纷来向你请教长寿秘诀。你笑着说："心态好、多运动、少纠结，这就是我的秘诀。"这一生，你值了！`,
+        type: 'good'
+      }
+    ];
+    return endings[Math.floor(Math.random() * endings.length)];
+  }
+  
+  // 高龄 + 健康 = 长寿结局（多种文案）
+  if (age >= 90 && health >= 50) {
+    const endings = [
+      {
+        tag: 'legendary', tagText: '长寿结局',
+        title: '长命百岁',
+        subtitle: '能活到这个岁数，本身就是一种胜利',
+        story: `${age}岁了！你已经是家族里最长寿的人了。${!single ? '五代同堂，' : ''}儿孙们都以你为荣。你这一生，有苦有甜，但能活到今天，什么都值了。`,
+        type: 'good'
+      },
+      {
+        tag: 'legendary', tagText: '长寿结局',
+        title: '岁月静好',
+        subtitle: '熬过了风雨，等到了彩虹',
+        story: `${age}岁了。你坐在摇椅上，晒着太阳，回想这一生。年轻时那些天大的事，现在想想都不算什么了。存款${Math.floor(netMoney/10000)}万，不多但够用。你很知足。`,
+        type: 'good'
+      },
+      {
+        tag: 'legendary', tagText: '长寿结局',
+        title: '生命赢家',
+        subtitle: '活得久才是真本事',
+        story: `${age}岁！你比同龄人多活了好几十年。存款${Math.floor(netMoney/10000)}万，身体还算硬朗，${network >= 60 ? '老朋友偶尔来串门，' : ''}日子过得平静又充实。这一辈子，值了。`,
+        type: 'good'
+      }
+    ];
+    return endings[Math.floor(Math.random() * endings.length)];
   }
   
   // 根据属性组合生成不同结局
   // 健康 + 有钱 = 人生赢家
   if (health >= 60 && netMoney >= 1000000) {
-    return {
-      tag: 'legendary', tagText: '传奇结局',
-      title: '人生赢家',
-      subtitle: '有钱又有健康，这才是真正的成功',
-      story: `${age}岁了，身体还硬朗，存款${Math.floor(netMoney/10000)}万。儿孙绕膝，生活富足，你成了别人眼中的"人生赢家"。这一辈子，你做对了几个关键选择。`,
-      type: 'good'
-    };
+    const endings = [
+      {
+        tag: 'legendary', tagText: '传奇结局',
+        title: '人生赢家',
+        subtitle: '有钱又有健康，这才是真正的成功',
+        story: `${age}岁了，身体还硬朗，存款${Math.floor(netMoney/10000)}万。${!single ? '儿孙绕膝，' : ''}生活富足，你成了别人眼中的"人生赢家"。这一辈子，你做对了几个关键选择。`,
+        type: 'good'
+      },
+      {
+        tag: 'legendary', tagText: '传奇结局',
+        title: '富足人生',
+        subtitle: '财务自由，身体健康',
+        story: `${age}岁，你实现了大多数人一辈子的梦想：存款${Math.floor(netMoney/10000)}万，想去哪就去哪，身体也没拖后腿。这一路走来不容易，但你做到了。`,
+        type: 'good'
+      }
+    ];
+    return endings[Math.floor(Math.random() * endings.length)];
   }
   
-  // 健康 + 没钱 = 平凡幸福
+  // 健康 + 没钱 = 平凡幸福（多种文案）
   if (health >= 60 && netMoney < 1000000) {
-    return {
-      tag: 'good', tagText: '幸福结局',
-      title: '平凡中的幸福',
-      subtitle: '没什么钱，但也没什么遗憾',
-      story: `${age}岁了，身体还算健康，存款虽然不多（${Math.floor(netMoney/10000)}万），但够用了。${!single ? '儿孙满堂，' : ''}你发现，人生的幸福不在于有多少钱，而在于拥有什么。`,
-      type: 'good'
-    };
+    const endings = [
+      {
+        tag: 'good', tagText: '幸福结局',
+        title: '平凡中的幸福',
+        subtitle: '没什么钱，但也没什么遗憾',
+        story: `${age}岁了，身体还算健康，存款虽然不多（${Math.floor(netMoney/10000)}万），但够用了。${!single ? '儿孙满堂，' : ''}你发现，人生的幸福不在于有多少钱，而在于拥有什么。`,
+        type: 'good'
+      },
+      {
+        tag: 'good', tagText: '幸福结局',
+        title: '知足常乐',
+        subtitle: '钱不多，但日子过得舒心',
+        story: `${age}岁，存款${Math.floor(netMoney/10000)}万，不算富裕，但你很快乐。身体还行，${hasFriends ? '朋友几个，' : ''}每天的日子平淡却充实。你觉得，这样也挺好。`,
+        type: 'good'
+      },
+      {
+        tag: 'good', tagText: '幸福结局',
+        title: '简单生活',
+        subtitle: '不追求大富大贵',
+        story: `${age}岁了。这一生你没有赚大钱，存款${Math.floor(netMoney/10000)}万，但你也没有大起大落的烦恼。平平淡淡，健健康康，你觉得这就是一种福。`,
+        type: 'good'
+      }
+    ];
+    return endings[Math.floor(Math.random() * endings.length)];
   }
   
-  // 不健康 + 有钱 = 有钱没命花
-  if (health < 60 && health > 0 && netMoney >= 1000000) {
-    return {
-      tag: 'neutral', tagText: '遗憾结局',
-      title: '有钱没命花',
-      subtitle: '赚了钱，却赔了健康',
-      story: `${age}岁了，存款${Math.floor(netMoney/10000)}万，但身体已经不行了。你躺在病床上，看着银行卡里的数字，突然觉得这些钱没什么意义。如果可以重来，你会选择少拼一点吗？`,
-      type: 'neutral'
-    };
+  // 不健康 + 有钱 = 有钱没命花（多种文案）
+  if (health < 60 && netMoney >= 1000000) {
+    const endings = [
+      {
+        tag: 'neutral', tagText: '遗憾结局',
+        title: '有钱没命花',
+        subtitle: '赚了钱，却赔了健康',
+        story: `${age}岁了，存款${Math.floor(netMoney/10000)}万，但身体已经不行了。你躺在病床上，看着银行卡里的数字，突然觉得这些钱没什么意义。如果可以重来，你会选择少拼一点吗？`,
+        type: 'neutral'
+      },
+      {
+        tag: 'neutral', tagText: '遗憾结局',
+        title: '用健康换钱',
+        subtitle: '交易完成，后悔也来不及',
+        story: `${age}岁，医生说你的身体透支太严重了。存款${Math.floor(netMoney/10000)}万，看病都不一定够。你想起年轻时拼命加班的日子，如果那时少熬几个夜...算了，没如果了。`,
+        type: 'neutral'
+      },
+      {
+        tag: 'neutral', tagText: '遗憾结局',
+        title: '成功者的代价',
+        subtitle: '站得越高，摔得越疼',
+        story: `${age}岁，你是别人眼中的成功人士，存款${Math.floor(netMoney/10000)}万。但只有你知道，这些是用什么换来的。病床上的日子，你第一次有时间停下来思考：这值得吗？`,
+        type: 'neutral'
+      }
+    ];
+    return endings[Math.floor(Math.random() * endings.length)];
   }
   
-  // 不健康 + 没钱 = 最惨结局
-  if (health < 60 && health > 0 && netMoney < 1000000) {
-    return {
-      tag: 'bad', tagText: '悲惨结局',
-      title: '又病又穷',
-      subtitle: '人生没有更糟了',
-      story: `${age}岁了，身体垮了，钱也没了。存款只剩${Math.floor(netMoney/10000)}万，看病都不够。你躺在病床上，回想这一生，不知道哪里做错了。`,
-      type: 'bad'
-    };
-  }
-  
-  // 高龄 + 健康 = 长寿结局
-  if (age >= 90 && health >= 50) {
-    return {
-      tag: 'legendary', tagText: '长寿结局',
-      title: '长命百岁',
-      subtitle: '能活到这个岁数，本身就是一种胜利',
-      story: `${age}岁了！你已经是家族里最长寿的人了。${!single ? '五代同堂，' : ''}儿孙们都以你为荣。你这一生，有苦有甜，但能活到今天，什么都值了。`,
-      type: 'good'
-    };
+  // 不健康 + 没钱 = 最惨结局（多种文案）
+  if (health < 60 && netMoney < 1000000) {
+    const endings = [
+      {
+        tag: 'bad', tagText: '悲惨结局',
+        title: '又病又穷',
+        subtitle: '人生没有更糟了',
+        story: `${age}岁了，身体垮了，钱也没了。存款只剩${Math.floor(netMoney/10000)}万，看病都不够。你躺在病床上，回想这一生，不知道哪里做错了。`,
+        type: 'bad'
+      },
+      {
+        tag: 'bad', tagText: '悲惨结局',
+        title: '命运捉弄',
+        subtitle: '越是挣扎，越是无力',
+        story: `${age}岁，你躺在医院走廊的加床，存款${Math.floor(netMoney/10000)}万，连住院押金都凑不齐。这一生你努力过，挣扎过，但好像命运一直在和你作对。`,
+        type: 'bad'
+      },
+      {
+        tag: 'bad', tagText: '悲惨结局',
+        title: '底层人生',
+        subtitle: '一直在谷底挣扎',
+        story: `${age}岁，你的身体撑不住了。存款${Math.floor(netMoney/10000)}万，可能连后事都不够。这一生，你好像永远在还债，永远不够，永远在担心。现在不用担心了。`,
+        type: 'bad'
+      }
+    ];
+    return endings[Math.floor(Math.random() * endings.length)];
   }
   
   // 高人脉 = 人脉结局
   if (network >= 80) {
-    return {
-      tag: 'good', tagText: '人脉结局',
-      title: '广结善缘',
-      subtitle: '朋友遍天下',
-      story: `${age}岁了，虽然存款只有${Math.floor(netMoney/10000)}万，但你的通讯录里有几百个朋友。无论遇到什么事，总有人帮你。这就是你的人脉财富。`,
-      type: 'good'
-    };
+    const endings = [
+      {
+        tag: 'good', tagText: '人脉结局',
+        title: '广结善缘',
+        subtitle: '朋友遍天下',
+        story: `${age}岁了，虽然存款只有${Math.floor(netMoney/10000)}万，但你的通讯录里有几百个朋友。无论遇到什么事，总有人帮你。这就是你的人脉财富。`,
+        type: 'good'
+      },
+      {
+        tag: 'good', tagText: '人脉结局',
+        title: '桃李满天下',
+        subtitle: '帮助过的人，都会记得你',
+        story: `${age}岁，你这一生没赚大钱，但交了很多真朋友。存款${Math.floor(netMoney/10000)}万，但人脉是无价的。生病的时候有人探望，困难的时候有人帮。你觉得这才是真正的富有。`,
+        type: 'good'
+      }
+    ];
+    return endings[Math.floor(Math.random() * endings.length)];
   }
   
   // 高幸运 = 运气结局
   if (luck >= 80) {
-    return {
-      tag: 'good', tagText: '幸运结局',
-      title: '一生好运',
-      subtitle: '你就是那个被命运眷顾的人',
-      story: `${age}岁了，回想这一生，似乎总有些好运气。关键时刻总有人帮你，危险总能躲过。存款${Math.floor(netMoney/10000)}万，不算多，但你已经很知足了。`,
-      type: 'good'
-    };
+    const endings = [
+      {
+        tag: 'good', tagText: '幸运结局',
+        title: '一生好运',
+        subtitle: '你就是那个被命运眷顾的人',
+        story: `${age}岁了，回想这一生，似乎总有些好运气。关键时刻总有人帮你，危险总能躲过。存款${Math.floor(netMoney/10000)}万，不算多，但你已经很知足了。`,
+        type: 'good'
+      },
+      {
+        tag: 'good', tagText: '幸运结局',
+        title: '福星高照',
+        subtitle: '运气也是实力的一种',
+        story: `${age}岁，你被朋友们称为"锦鲤体质"。每次快撑不住的时候，总有好运气来救你。存款${Math.floor(netMoney/10000)}万，身体还行，朋友也多。你觉得这辈子挺幸运的。`,
+        type: 'good'
+      }
+    ];
+    return endings[Math.floor(Math.random() * endings.length)];
   }
   
-  // 健康为0 = 死亡结局
-  if (health <= 0) {
-    if (netMoney >= 1000000) {
-      return {
-        tag: 'neutral', tagText: '遗憾结局',
-        title: '倒在终点前',
-        subtitle: '钱赚够了，人却没了',
-        story: `${age}岁，你倒下了。存款${Math.floor(netMoney/10000)}万，但已经没机会花了。在医院的病床上，你回想起这一生，似乎一直在为钱奔波。现在钱有了，人没了。`,
-        type: 'neutral'
-      };
-    } else {
-      return {
-        tag: 'bad', tagText: '悲惨结局',
-        title: '又病又穷',
-        subtitle: '钱没赚到，人先没了',
-        story: `${age}岁，你的健康值降到了0。在医院的病床上，你回想这些年，大部分时间都在为钱发愁。现在钱不重要了，但你也没机会花了。`,
-        type: 'bad'
-      };
+  // 默认结局（多种文案）
+  const defaultEndings = [
+    {
+      tag: 'neutral', tagText: '平凡结局',
+      title: '平凡一生',
+      subtitle: '没什么特别的，但也不差',
+      story: `${age}岁了，存款${Math.floor(netMoney/10000)}万，健康${health}分。这一生没什么特别的，像大多数人那样活着。但也还行，至少没饿死。`,
+      type: 'neutral'
+    },
+    {
+      tag: 'neutral', tagText: '平凡结局',
+      title: '普通人的一生',
+      subtitle: '不精彩，但真实',
+      story: `${age}岁。这一生平平淡淡，没有传奇故事，没有跌宕起伏。存款${Math.floor(netMoney/10000)}万，不多不少。你想想，普通人不就是这样吗？`,
+      type: 'neutral'
+    },
+    {
+      tag: 'neutral', tagText: '平凡结局',
+      title: '人生过客',
+      subtitle: '来过，活过，就够了',
+      story: `${age}岁。你想想这一生，好像没什么值得被记住的事。存款${Math.floor(netMoney/10000)}万，健康${health}分，普通得不能再普通。但你认真地活过了，这也是一种意义。`,
+      type: 'neutral'
     }
-  }
-  
-  // 默认结局
-  return {
-    tag: 'neutral', tagText: '平凡结局',
-    title: '平凡一生',
-    subtitle: '没什么特别的，但也不差',
-    story: `${age}岁了，存款${Math.floor(netMoney/10000)}万，健康${health}分。这一生没什么特别的，像大多数人那样活着。但也还行，至少没饿死。`,
-    type: 'neutral'
-  };
+  ];
+  return defaultEndings[Math.floor(Math.random() * defaultEndings.length)];
 }
