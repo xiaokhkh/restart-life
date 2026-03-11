@@ -105,10 +105,10 @@ function renderInit() {
   const body = document.getElementById('init-body');
   const s = G;
   
-  // 计算初始月度现金流
+  // 计算初始月度收支
   const monthlyIncome = s.income || 0;
   const monthlyExpense = s.city.cost + s.burden;
-  const monthlyNet = monthlyIncome - monthlyExpense;
+  const monthlyBalance = monthlyIncome - monthlyExpense;
   
   body.innerHTML = `
     <div class="init-story">
@@ -137,25 +137,20 @@ function renderInit() {
     </div>
     ` : ''}
     <div class="init-card" style="background: var(--aged);">
-      <div class="init-label">📊 月度现金流</div>
-      <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
-        <span>收入</span>
-        <span style="color: var(--green);">+¥${monthlyIncome.toLocaleString()}</span>
+      <div class="init-label">📊 每月收支</div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
+        <span>月收入</span>
+        <span style="color: var(--green); font-weight: 600;">¥${monthlyIncome.toLocaleString()}</span>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px;">
-        <span>支出</span>
-        <span style="color: var(--red);">-¥${monthlyExpense.toLocaleString()}</span>
+        <span>月支出</span>
+        <span style="color: var(--red);">¥${monthlyExpense.toLocaleString()}</span>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; border-top: 1px dashed var(--light-gray); padding-top: 8px;">
-        <span>每月净收入</span>
-        <span style="color: ${monthlyNet >= 0 ? 'var(--green)' : 'var(--red)'};">
-          ${monthlyNet >= 0 ? '+' : ''}¥${monthlyNet.toLocaleString()}
+        <span>每月结余</span>
+        <span style="color: ${monthlyBalance >= 0 ? 'var(--green)' : 'var(--red)'};">
+          ${monthlyBalance >= 0 ? '+' : ''}¥${monthlyBalance.toLocaleString()}
         </span>
-      </div>
-      <div class="init-desc" style="margin-top: 8px;">
-        ${monthlyNet >= 0 
-          ? '每月能存下一些钱，慢慢积累财富' 
-          : '入不敷出，需要想办法增加收入或减少支出'}
       </div>
     </div>
     <div class="init-stats">
@@ -331,7 +326,7 @@ function updateFinancialPanel() {
     }
   }
   
-  // 计算当前月度现金流
+  // 计算当前月度收支
   const isRetired = G.age >= 65 || G.income === 0;
   let monthlyIncome = 0;
   let monthlyExpense = 0;
@@ -345,19 +340,18 @@ function updateFinancialPanel() {
     monthlyExpense = G.city.cost + G.burden;
   }
   
-  const monthlyNet = monthlyIncome - monthlyExpense;
-  const netColor = monthlyNet >= 0 ? 'var(--green)' : 'var(--red)';
-  const netSign = monthlyNet >= 0 ? '+' : '';
+  const monthlyBalance = monthlyIncome - monthlyExpense;
+  const balanceColor = monthlyBalance >= 0 ? 'var(--green)' : 'var(--red)';
   
   panel.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center;">
       <span>${isRetired ? '🏠 退休生活' : '💼 ' + (G.job ? G.job.title : '自由职业')}</span>
       <span>
-        <span style="color: var(--green);">+¥${monthlyIncome.toLocaleString()}</span>
-        <span style="margin: 0 4px;">-</span>
-        <span style="color: var(--red);">¥${monthlyExpense.toLocaleString()}</span>
-        <span style="margin: 0 4px;">=</span>
-        <span style="color: ${netColor}; font-weight: 600;">${netSign}¥${monthlyNet.toLocaleString()}/月</span>
+        月入 <span style="color: var(--green); font-weight: 600;">¥${monthlyIncome.toLocaleString()}</span>
+        <span style="margin: 0 6px;">|</span>
+        月支 <span style="color: var(--red);">¥${monthlyExpense.toLocaleString()}</span>
+        <span style="margin: 0 6px;">|</span>
+        每月 <span style="color: ${balanceColor}; font-weight: 600;">${monthlyBalance >= 0 ? '+' : ''}¥${monthlyBalance.toLocaleString()}</span>
       </span>
     </div>
   `;
@@ -621,43 +615,36 @@ function showResult(result, cb) {
   
   const gameScreen = document.getElementById('game-screen');
   
-  // 构建资产变化明细
-  let moneyChangeHtml = '';
-  if (result.money !== undefined && result.money !== 0) {
-    moneyChangeHtml = `<div class="result-money ${result.money > 0 ? 'gain' : 'loss'}">
-      ${result.money > 0 ? '+' : ''}¥${result.money.toLocaleString()}
-    </div>`;
-  }
-  
-  // 构建时间推进明细
+  // 构建时间推进明细（简化版：只显示总资产变化和健康衰减）
   let timeChangeHtml = '';
   if (lastChange.years > 0) {
-    const monthlyNetText = lastChange.monthlyNet >= 0 
-      ? `+¥${lastChange.monthlyNet.toLocaleString()}/月` 
-      : `-¥${Math.abs(lastChange.monthlyNet).toLocaleString()}/月`;
+    // 计算总资产变化（事件影响 + 时间推进）
+    const totalAssetChange = result.money + lastChange.netFlow;
+    const totalHealthChange = result.health + lastChange.healthDelta;
     
     timeChangeHtml = `
-      <div class="result-time-detail" style="background: var(--aged); padding: 12px; margin-bottom: 12px; border-radius: 4px; font-size: 12px;">
-        <div style="font-weight: 600; margin-bottom: 8px;">⏰ 过去 ${lastChange.years} 年</div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-          <span>总收入</span>
-          <span style="color: var(--green);">+¥${lastChange.income.toLocaleString()}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-          <span>总支出</span>
-          <span style="color: var(--red);">-¥${lastChange.expenses.toLocaleString()}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; border-top: 1px dashed var(--light-gray); padding-top: 4px; margin-top: 4px;">
-          <span>净现金流</span>
-          <span style="color: ${lastChange.netFlow >= 0 ? 'var(--green)' : 'var(--red)'}; font-weight: 600;">
-            ${lastChange.netFlow >= 0 ? '+' : ''}¥${lastChange.netFlow.toLocaleString()}
+      <div class="result-time-detail" style="background: var(--aged); padding: 12px; margin-bottom: 12px; border-radius: 4px; font-size: 13px;">
+        <div style="font-weight: 600; margin-bottom: 10px; color: var(--ink);">⏰ 过去 ${lastChange.years} 年</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--light-gray);">
+          <span>💰 总资产</span>
+          <span style="color: ${totalAssetChange >= 0 ? 'var(--green)' : 'var(--red)'}; font-weight: 700; font-size: 16px;">
+            ${totalAssetChange >= 0 ? '+' : ''}¥${totalAssetChange.toLocaleString()}
           </span>
         </div>
-        <div style="color: var(--gray); font-size: 11px; margin-top: 4px;">
-          月净收入: ${monthlyNetText}
+        ${lastChange.healthDelta !== 0 ? `
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span>❤️ 年龄增长带来的健康损耗</span>
+          <span style="color: var(--red); font-weight: 600;">
+            ${lastChange.healthDelta}
+          </span>
         </div>
+        ` : ''}
       </div>
     `;
+    
+    // 更新 result 中的数值，用于显示总变化
+    result.money = totalAssetChange;
+    result.health = totalHealthChange;
   }
   
   const popup = document.createElement('div');
@@ -667,7 +654,6 @@ function showResult(result, cb) {
       <div class="result-icon">${icons[result.type] || '📌'}</div>
       <div class="result-title">${titles[result.type] || '结果'}</div>
       <div class="result-desc">${result.msg}</div>
-      ${moneyChangeHtml}
       ${timeChangeHtml}
       <div class="result-stats">
         <div class="result-stat-item">
