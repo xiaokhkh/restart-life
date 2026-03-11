@@ -498,7 +498,7 @@ function renderLog() {
 }
 
 // ============================================================
-// 事件处理
+// 事件处理 - 修复数值显示问题
 // ============================================================
 function makeChoice(idx, event) {
   const choice = event.choices[idx];
@@ -508,29 +508,34 @@ function makeChoice(idx, event) {
     money: G.money,
     health: G.health,
     network: G.network,
-    luck: G.luck
+    luck: G.luck,
+    age: G.age
   };
   
   // 执行事件效果
   const result = choice.effect(G);
   
-  // 计算实际变化（事件effect已经修改了G对象）
-  const actualResult = {
+  // 决定时间推进年数
+  const yrs = 2 + Math.floor(Math.random() * 3);
+  const actualYrs = Math.min(yrs, G.maxAge - G.age);
+  
+  // 先推进时间，再显示结果
+  advanceTime(actualYrs, result.msg.substring(0, 20));
+  
+  // 计算总变化
+  const totalChange = {
     type: result.type,
     msg: result.msg,
     money: G.money - before.money,
     health: G.health - before.health,
     network: G.network - before.network,
-    luck: G.luck - before.luck
+    luck: G.luck - before.luck,
+    years: actualYrs,
+    healthFromAging: lastChange.healthDelta
   };
   
-  showResult(actualResult, () => {
-    const yrs = 2 + Math.floor(Math.random() * 3);
-    const actualYrs = Math.min(yrs, G.maxAge - G.age);
-    advanceTime(actualYrs, result.msg.substring(0, 20));
-    G.milestones.push(`${G.age - actualYrs}岁: ${result.msg.substring(0, 50)}...`);
-    nextEvent();
-  });
+  G.milestones.push(`${before.age}岁: ${result.msg.substring(0, 50)}...`);
+  showResult(totalChange);
 }
 
 function triggerRandom(event) {
@@ -539,29 +544,34 @@ function triggerRandom(event) {
     money: G.money,
     health: G.health,
     network: G.network,
-    luck: G.luck
+    luck: G.luck,
+    age: G.age
   };
   
   // 执行事件效果
   const result = event.effect(G);
   
-  // 计算实际变化（事件effect已经修改了G对象）
-  const actualResult = {
+  // 决定时间推进年数
+  const yrs = 1 + Math.floor(Math.random() * 2);
+  const actualYrs = Math.min(yrs, G.maxAge - G.age);
+  
+  // 先推进时间
+  advanceTime(actualYrs, result.msg.substring(0, 20));
+  
+  // 计算总变化
+  const totalChange = {
     type: result.type,
     msg: result.msg,
     money: G.money - before.money,
     health: G.health - before.health,
     network: G.network - before.network,
-    luck: G.luck - before.luck
+    luck: G.luck - before.luck,
+    years: actualYrs,
+    healthFromAging: lastChange.healthDelta
   };
   
-  showResult(actualResult, () => {
-    const yrs = 1 + Math.floor(Math.random() * 2);
-    const actualYrs = Math.min(yrs, G.maxAge - G.age);
-    advanceTime(actualYrs, result.msg.substring(0, 20));
-    G.milestones.push(`${G.age - actualYrs}岁: ${result.msg.substring(0, 50)}...`);
-    nextEvent();
-  });
+  G.milestones.push(`${before.age}岁: ${result.msg.substring(0, 50)}...`);
+  showResult(totalChange);
 }
 
 function triggerEaster(event) {
@@ -570,35 +580,40 @@ function triggerEaster(event) {
     money: G.money,
     health: G.health,
     network: G.network,
-    luck: G.luck
+    luck: G.luck,
+    age: G.age
   };
   
   // 执行事件效果
   const result = event.effect(G);
   
-  // 计算实际变化（事件effect已经修改了G对象）
-  const actualResult = {
+  // 检查是否是结局彩蛋
+  if (result.type === 'easter' && G.easterEgg) {
+    showEnding();
+    return;
+  }
+  
+  // 推进时间
+  const yrs = 2 + Math.floor(Math.random() * 3);
+  advanceTime(yrs, '彩蛋事件');
+  
+  // 计算总变化
+  const totalChange = {
     type: result.type,
     msg: result.msg,
     money: G.money - before.money,
     health: G.health - before.health,
     network: G.network - before.network,
-    luck: G.luck - before.luck
+    luck: G.luck - before.luck,
+    years: yrs,
+    healthFromAging: lastChange.healthDelta
   };
   
-  showResult(actualResult, () => {
-    if (result.type === 'easter' && G.easterEgg) {
-      showEnding();
-    } else {
-      const yrs = 2 + Math.floor(Math.random() * 3);
-      advanceTime(yrs, '彩蛋事件');
-      G.milestones.push(`${G.age}岁: 【彩蛋】${result.msg.substring(0, 40)}...`);
-      nextEvent();
-    }
-  });
+  G.milestones.push(`${before.age}岁: 【彩蛋】${result.msg.substring(0, 40)}...`);
+  showResult(totalChange);
 }
 
-function showResult(result, cb) {
+function showResult(change) {
   const icons = { 
     gain: '🎯', 
     loss: '💸', 
@@ -615,63 +630,59 @@ function showResult(result, cb) {
   
   const gameScreen = document.getElementById('game-screen');
   
-  // 构建时间推进明细（简化版：只显示总资产变化和健康衰减）
+  // 更新界面显示当前状态
+  updateHeader();
+  updateStatsPanel();
+  
+  // 构建时间推进明细
   let timeChangeHtml = '';
-  if (lastChange.years > 0) {
-    // 计算总资产变化（事件影响 + 时间推进）
-    const totalAssetChange = result.money + lastChange.netFlow;
-    const totalHealthChange = result.health + lastChange.healthDelta;
-    
+  if (change.years > 0) {
     timeChangeHtml = `
       <div class="result-time-detail" style="background: var(--aged); padding: 12px; margin-bottom: 12px; border-radius: 4px; font-size: 13px;">
-        <div style="font-weight: 600; margin-bottom: 10px; color: var(--ink);">⏰ 过去 ${lastChange.years} 年</div>
+        <div style="font-weight: 600; margin-bottom: 10px; color: var(--ink);">⏰ 过去 ${change.years} 年</div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--light-gray);">
           <span>💰 总资产</span>
-          <span style="color: ${totalAssetChange >= 0 ? 'var(--green)' : 'var(--red)'}; font-weight: 700; font-size: 16px;">
-            ${totalAssetChange >= 0 ? '+' : ''}¥${totalAssetChange.toLocaleString()}
+          <span style="color: ${change.money >= 0 ? 'var(--green)' : 'var(--red)'}; font-weight: 700; font-size: 16px;">
+            ${change.money >= 0 ? '+' : ''}¥${change.money.toLocaleString()}
           </span>
         </div>
-        ${lastChange.healthDelta !== 0 ? `
+        ${change.healthFromAging ? `
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span>❤️ 年龄增长带来的健康损耗</span>
           <span style="color: var(--red); font-weight: 600;">
-            ${lastChange.healthDelta}
+            ${change.healthFromAging}
           </span>
         </div>
         ` : ''}
       </div>
     `;
-    
-    // 更新 result 中的数值，用于显示总变化
-    result.money = totalAssetChange;
-    result.health = totalHealthChange;
   }
   
   const popup = document.createElement('div');
   popup.className = 'result-popup';
   popup.innerHTML = `
     <div class="result-box">
-      <div class="result-icon">${icons[result.type] || '📌'}</div>
-      <div class="result-title">${titles[result.type] || '结果'}</div>
-      <div class="result-desc">${result.msg}</div>
+      <div class="result-icon">${icons[change.type] || '📌'}</div>
+      <div class="result-title">${titles[change.type] || '结果'}</div>
+      <div class="result-desc">${change.msg}</div>
       ${timeChangeHtml}
       <div class="result-stats">
         <div class="result-stat-item">
           <div class="result-stat-label">❤️ 健康</div>
-          <div class="result-stat-change ${result.health > 0 ? 'up' : result.health < 0 ? 'down' : 'same'}">
-            ${result.health > 0 ? '+' : ''}${result.health || 0}
+          <div class="result-stat-change ${change.health > 0 ? 'up' : change.health < 0 ? 'down' : 'same'}">
+            ${change.health > 0 ? '+' : ''}${change.health || 0}
           </div>
         </div>
         <div class="result-stat-item">
           <div class="result-stat-label">🤝 人脉</div>
-          <div class="result-stat-change ${result.network > 0 ? 'up' : result.network < 0 ? 'down' : 'same'}">
-            ${result.network > 0 ? '+' : ''}${result.network || 0}
+          <div class="result-stat-change ${change.network > 0 ? 'up' : change.network < 0 ? 'down' : 'same'}">
+            ${change.network > 0 ? '+' : ''}${change.network || 0}
           </div>
         </div>
         <div class="result-stat-item">
           <div class="result-stat-label">🍀 幸运</div>
-          <div class="result-stat-change ${result.luck > 0 ? 'up' : result.luck < 0 ? 'down' : 'same'}">
-            ${result.luck > 0 ? '+' : ''}${result.luck || 0}
+          <div class="result-stat-change ${change.luck > 0 ? 'up' : change.luck < 0 ? 'down' : 'same'}">
+            ${change.luck > 0 ? '+' : ''}${change.luck || 0}
           </div>
         </div>
       </div>
@@ -682,7 +693,7 @@ function showResult(result, cb) {
   popup.querySelector('.btn-next').onclick = (e) => {
     e.stopPropagation();
     popup.remove();
-    cb();
+    nextEvent();
   };
   
   gameScreen.appendChild(popup);
