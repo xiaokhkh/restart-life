@@ -1,0 +1,73 @@
+// 测试脚本
+const simulate = `
+const fs = require('fs');
+const dataCode = fs.readFileSync('game-data.js', 'utf8');
+const engineCode = fs.readFileSync('game-engine.js', 'utf8');
+
+// 模拟游戏
+const scenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
+  const G = {
+    scenario: scenario,
+    age: 35,
+    money: 100000,
+    income: 20000,
+    job: JOBS[0],
+    city: CITIES[0],
+    burden: 3000,
+    debt: 0,
+    monthlyDebt: 0,
+    health: 80,
+    network: 50,
+    luck: 50,
+    riskFlag: false,
+    bigWin: false,
+    entrepreneur: false,
+    single: false,
+    milestones: [],
+    usedChoices: new Set(),
+    year: 0,
+    maxAge: 120,
+    startMoney: 100000,
+    startAge: 35
+  };
+  
+  // 应用场景
+  if (scenario.init) scenario.init(G);
+  
+  console.log('开局:', scenario.title);
+  console.log('初始健康:', G.health);
+  
+  // 模拟健康下降
+  let totalHealthLoss = 0;
+  let events = 0;
+  
+  while (G.age < 120 && G.health > 0) {
+    // 模拟时间推进（平均3年）
+    const years = 2 + Math.floor(Math.random() * 3);
+    const actualYears = Math.min(years, G.maxAge - G.age);
+    
+    // 健康下降（根据年龄)
+    let healthLoss = 0;
+    if (G.age < 50) {
+      healthLoss = actualYears * 0.3;
+    } else if (G.age < 70) {
+      healthLoss = actualYears * 0.5;
+    } else if (G.age < 90) {
+      healthLoss = actualYears * 0.8;
+    } else {
+      healthLoss = actualYears * 1.2;
+    }
+    
+    G.health = Math.max(0, G.health - healthLoss)
+    G.age += actualYears
+    totalHealthLoss += healthLoss
+    events++
+  }
+  
+  console.log('最终年龄:', G.age, '岁');
+  console.log('最终健康:', G.health);
+  console.log('总健康下降:', totalHealthLoss.toFixed(1), '点');
+  console.log('经历事件:', events, '个');
+  console.log('平均每次事件健康下降:', (totalHealthLoss / events).toFixed(2), '点');
+}
+`);
